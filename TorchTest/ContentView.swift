@@ -7,11 +7,40 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 struct ContentView: View {
-    var body: some View {
-        Text("Hello, World!")
+  @State private var level: Float = 0.5
+  var body: some View {
+    VStack {
+      Button(action: {
+        setTorchLevel(self.level)
+      }) {
+        Text("SetTorch")
+      }
+      Text(String(self.level))
+        .padding(.top)
+      Slider(value: $level, in: 0.0...1.0, step: 0.1)
     }
+  }
+}
+
+func setTorchLevel(_ level: Float) {
+  guard let device = AVCaptureDevice.default(.builtInDualWideCamera, for: .video, position: .back)
+    else { return }
+  
+  do {
+    try device.lockForConfiguration()
+    if level == 0.0 {
+      device.torchMode = .off
+    } else {
+      try device.setTorchModeOn(level: level)
+    }
+    device.unlockForConfiguration()
+    print(device.isTorchActive, device.torchLevel)
+  } catch {
+    print(error.localizedDescription)
+  }
 }
 
 struct ContentView_Previews: PreviewProvider {
